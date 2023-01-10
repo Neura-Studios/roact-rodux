@@ -22,14 +22,57 @@ Roact-Rodux is an ergonomic binding between [Roact](https://github.com/Roblox/ro
 It is the recommended way to use the two libraries together, and is similar in scope to [react-redux](https://github.com/reduxjs/react-redux), the equivalent library for React and Redux.
 
 ## [Documentation](http://roblox.github.io/roact-rodux/)
+
 All documentation for Roact-Rodux is available on [the official docs website](http://roblox.github.io/roact-rodux). It includes:
 
-* [Installation Instructions](https://roblox.github.io/roact-rodux/guide/installation/)
-* [An introduction to Roact-Rodux](https://roblox.github.io/roact-rodux/guide/usage/)
-* [An API reference](https://roblox.github.io/roact-rodux/api-reference/)
+- [Installation Instructions](https://roblox.github.io/roact-rodux/guide/installation/)
+- [An introduction to Roact-Rodux](https://roblox.github.io/roact-rodux/guide/usage/)
+- [An API reference](https://roblox.github.io/roact-rodux/api-reference/)
+
+## Fork Changes
+
+This fork requires you to pass in an array of store state keys as the first argument to `RoactRodux.connect`. This ensures that you have control over which bits of state trigger rerenders for your component.
+
+Here's an example that shows how to link RoactRodux with a basic currency display:
+
+```lua
+--[[
+
+Rodux store state:
+
+{
+	Coins = 50,
+	Gems = 100,
+	Inventory = {...},
+	UserPreferences = {...}
+}
+
+]]
+
+-- Connecting your component --
+RoactRodux.connect({
+    "Coins",
+    "Gems"
+}, function(state)
+    return {
+        coins = state.Coins,
+        gems = state.Gems
+    }
+end, function(dispatch)
+    return {
+        ...
+    }
+end)(CurrencyDisplayComponent)
+```
 
 ## Contributing
+
 Contributions to Roact-Rodux are welcome! Details are available in the [contributing guide](CONTRIBUTING.md).
 
 ## License
+
 Roact-Rodux is available under the Apache 2.0 license. See [LICENSE](LICENSE) for details.
+
+```
+
+```

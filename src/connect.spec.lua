@@ -29,28 +29,35 @@ return function()
 	local reducer = Rodux.combineReducers({
 		count = countReducer,
 	})
+	local substates = { "count" }
 
 	describe("Argument validation", function()
-		it("should accept no arguments", function()
-			connect()
+		it("should accept sub-states", function()
+			connect(substates)
 		end)
 
-		it("should accept one function", function()
-			connect(noop)
+		it("should accept sub-states and one function", function()
+			connect(substates, noop)
 		end)
 
-		it("should accept two functions", function()
-			connect(noop, noop)
+		it("should accept sub-states and two functions", function()
+			connect(substates, noop, noop)
 		end)
 
-		it("should accept only the second function", function()
-			connect(nil, function() end)
+		it("should accept sub-states and only the second function", function()
+			connect(substates, nil, function() end)
 		end)
 
-		it("should accept one table of action creators", function()
-			connect(nil, {
+		it("should accept sub-states and one table of action creators", function()
+			connect(substates, nil, {
 				foo = (function() end :: any) :: AnyActionCreator,
 			})
+		end)
+
+		it("should throw if not passed sub-states", function()
+			expect(function()
+				connect(nil)
+			end).to.throw()
 		end)
 
 		it("should throw if not passed a component", function()
@@ -59,17 +66,131 @@ return function()
 			end
 
 			expect(function()
-				connect(selector)(nil)
+				connect(substates, selector)(nil)
 			end).to.throw()
 		end)
 	end)
 
 	it("should throw if not mounted under a StoreProvider", function()
-		local ConnectedSomeComponent = connect()(NoopComponent)
+		local ConnectedSomeComponent = connect(substates)(NoopComponent)
 
 		expect(function()
 			Roact.mount(Roact.createElement(ConnectedSomeComponent))
 		end).to.throw()
+	end)
+
+	it("should not render if provided sub-states array is empty", function()
+		local function mapStateToProps(state)
+			return {
+				count = state.count,
+			}
+		end
+
+		local renderCount = 0
+		local function SomeComponent(props)
+			renderCount = renderCount + 1
+		end
+
+		local ConnectedSomeComponent = connect({}, mapStateToProps)(SomeComponent)
+
+		local store = Rodux.Store.new(reducer)
+		local tree = Roact.createElement(StoreProvider, {
+			store = store,
+		}, {
+			someComponent = Roact.createElement(ConnectedSomeComponent),
+		})
+
+		local handle = Roact.mount(tree)
+
+		expect(renderCount).to.equal(1)
+
+		store:dispatch({ type = "an unknown action" })
+		store:flush()
+
+		expect(renderCount).to.equal(1)
+
+		store:dispatch({ type = "increment" })
+		store:flush()
+
+		expect(renderCount).to.equal(1)
+
+		Roact.unmount(handle)
+	end)
+
+	it("should render if provided sub-states does contain updated state", function()
+		local function mapStateToProps(state)
+			return {
+				count = state.count,
+			}
+		end
+
+		local renderCount = 0
+		local function SomeComponent(props)
+			renderCount = renderCount + 1
+		end
+
+		local ConnectedSomeComponent = connect({ "count" }, mapStateToProps)(SomeComponent)
+
+		local store = Rodux.Store.new(reducer)
+		local tree = Roact.createElement(StoreProvider, {
+			store = store,
+		}, {
+			someComponent = Roact.createElement(ConnectedSomeComponent),
+		})
+
+		local handle = Roact.mount(tree)
+
+		expect(renderCount).to.equal(1)
+
+		store:dispatch({ type = "an unknown action" })
+		store:flush()
+
+		expect(renderCount).to.equal(1)
+
+		store:dispatch({ type = "increment" })
+		store:flush()
+
+		expect(renderCount).to.equal(2)
+
+		Roact.unmount(handle)
+	end)
+
+	it("should not render if provided sub-states does not contain updated state", function()
+		local function mapStateToProps(state)
+			return {
+				count = state.count,
+			}
+		end
+
+		local renderCount = 0
+		local function SomeComponent(props)
+			renderCount = renderCount + 1
+		end
+
+		local ConnectedSomeComponent = connect({ "this_is_not_count" }, mapStateToProps)(SomeComponent)
+
+		local store = Rodux.Store.new(reducer)
+		local tree = Roact.createElement(StoreProvider, {
+			store = store,
+		}, {
+			someComponent = Roact.createElement(ConnectedSomeComponent),
+		})
+
+		local handle = Roact.mount(tree)
+
+		expect(renderCount).to.equal(1)
+
+		store:dispatch({ type = "an unknown action" })
+		store:flush()
+
+		expect(renderCount).to.equal(1)
+
+		store:dispatch({ type = "increment" })
+		store:flush()
+
+		expect(renderCount).to.equal(1)
+
+		Roact.unmount(handle)
 	end)
 
 	it("should accept a higher-order function mapStateToProps", function()
@@ -81,7 +202,7 @@ return function()
 			end
 		end
 
-		local ConnectedSomeComponent = connect(mapStateToProps)(NoopComponent)
+		local ConnectedSomeComponent = connect(substates, mapStateToProps)(NoopComponent)
 
 		local store = Rodux.Store.new(reducer)
 		local tree = Roact.createElement(StoreProvider, {
@@ -102,7 +223,7 @@ return function()
 			end
 		end
 
-		local ConnectedSomeComponent = connect(mapStateToProps)(NoopComponent)
+		local ConnectedSomeComponent = connect(substates, mapStateToProps)(NoopComponent)
 
 		local store = Rodux.Store.new(reducer)
 		local tree = Roact.createElement(StoreProvider, {
@@ -121,7 +242,7 @@ return function()
 			return "nah"
 		end
 
-		local ConnectedSomeComponent = connect(mapStateToProps)(NoopComponent)
+		local ConnectedSomeComponent = connect(substates, mapStateToProps)(NoopComponent)
 
 		local store = Rodux.Store.new(reducer)
 		local tree = Roact.createElement(StoreProvider, {
@@ -147,7 +268,7 @@ return function()
 			renderCount = renderCount + 1
 		end
 
-		local ConnectedSomeComponent = connect(mapStateToProps)(SomeComponent)
+		local ConnectedSomeComponent = connect(substates, mapStateToProps)(SomeComponent)
 
 		local store = Rodux.Store.new(reducer)
 		local tree = Roact.createElement(StoreProvider, {
@@ -190,7 +311,7 @@ return function()
 			renderCount = renderCount + 1
 		end
 
-		local ConnectedSomeComponent = connect(nil, mapDispatchToProps)(SomeComponent)
+		local ConnectedSomeComponent = connect(substates, nil, mapDispatchToProps)(SomeComponent)
 
 		local store = Rodux.Store.new(reducer)
 		local tree = Roact.createElement(StoreProvider, {
@@ -232,7 +353,7 @@ return function()
 			props.increment()
 		end
 
-		local ConnectedSomeComponent = connect(nil, mapDispatchToProps)(SomeComponent)
+		local ConnectedSomeComponent = connect(substates, nil, mapDispatchToProps)(SomeComponent)
 
 		local store = Rodux.Store.new(reducer)
 		local tree = Roact.createElement(StoreProvider, {
@@ -270,7 +391,7 @@ return function()
 			}
 		end
 
-		local ConnectedSomeComponent = connect(nil, mapDispatchToProps)(SomeComponent)
+		local ConnectedSomeComponent = connect(substates, nil, mapDispatchToProps)(SomeComponent)
 
 		-- We'll use the thunk middleware, as it should always return its result
 		local store = Rodux.Store.new(reducer, nil, { Rodux.thunkMiddleware })
@@ -295,7 +416,7 @@ return function()
 			}
 		end
 
-		local ConnectedSomeComponent = connect(mapStateToProps)(NoopComponent)
+		local ConnectedSomeComponent = connect(substates, mapStateToProps)(NoopComponent)
 
 		expect(function()
 			ConnectedSomeComponent.SomeEnum = {
@@ -320,7 +441,7 @@ return function()
 				count = state.count,
 			}
 		end
-		local ConnectedComponent = connect(mapStateToProps)(NoopComponent)
+		local ConnectedComponent = connect(substates, mapStateToProps)(NoopComponent)
 
 		local store = Rodux.Store.new(reducer)
 		local tree = Roact.createElement(StoreProvider, {

@@ -20,10 +20,7 @@ local completed, result = xpcall(function()
 		propValidation = true,
 	})
 
-	local results = TestEZ.TestBootstrap:run(
-		{ ReplicatedStorage.RoactRodux },
-		TestEZ.Reporters.TextReporter
-	)
+	local results = TestEZ.TestBootstrap:run({ ReplicatedStorage.RoactRodux }, TestEZ.Reporters.TextReporter)
 
 	return results.failureCount == 0 and 0 or 1
 end, debug.traceback)
@@ -37,14 +34,7 @@ else
 	errorMessage = result
 end
 
-if __LEMUR__ then
-	-- Lemur has access to normal Lua OS APIs
-
-	if errorMessage ~= nil then
-		print(errorMessage)
-	end
-	os.exit(statusCode)
-elseif isRobloxCli then
+if isRobloxCli then
 	-- Roblox CLI has a special service to terminate the process
 
 	if errorMessage ~= nil then

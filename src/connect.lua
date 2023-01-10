@@ -66,6 +66,7 @@ end
 	mapDispatchToProps: (dispatch) -> partialProps
 ]]
 local function connect<StoreState, Props, MappedStatePartialProps, MappedDispatchPartialProps>(
+	substates: { string },
 	mapStateToPropsOrThunk: MapStateToPropsOrThunk<
 		StoreState,
 		Props,
@@ -76,6 +77,12 @@ local function connect<StoreState, Props, MappedStatePartialProps, MappedDispatc
 		MappedDispatchPartialProps
 	>?
 )
+	if substates ~= nil then
+		assert(typeof(substates) == "table", "substates must be a string array!")
+	else
+		error("substates is a required parameter!")
+	end
+
 	if mapStateToPropsOrThunk ~= nil then
 		assert(typeof(mapStateToPropsOrThunk) == "function", "mapStateToProps must be a function or nil!")
 	else
@@ -208,19 +215,25 @@ local function connect<StoreState, Props, MappedStatePartialProps, MappedDispatc
 		end
 
 		function Connection:didMount()
-			local updateStateWithStore = function(storeState)
-				self:setState(function(prevState, props)
-					local mappedStoreState = prevState.mapStateToProps(storeState, props.innerProps)
+			local updateStateWithStore = function(storeState, prevStoreState)
+				for _, substateName in substates do
+					if prevStoreState == nil or prevStoreState[substateName] ~= storeState[substateName] then
+						self:setState(function(prevState, props)
+							local mappedStoreState = prevState.mapStateToProps(storeState, props.innerProps)
 
-					-- We run this check here so that we only check shallow
-					-- equality with the result of mapStateToProps, and not the
-					-- other props that could be passed through the connector.
-					if shallowEqual(mappedStoreState, prevState.mappedStoreState) then
-						return nil
+							-- We run this check here so that we only check shallow
+							-- equality with the result of mapStateToProps, and not the
+							-- other props that could be passed through the connector.
+							if shallowEqual(mappedStoreState, prevState.mappedStoreState) then
+								return nil
+							end
+
+							return prevState.stateUpdater(props.innerProps, prevState, mappedStoreState)
+						end)
+
+						break
 					end
-
-					return prevState.stateUpdater(props.innerProps, prevState, mappedStoreState)
-				end)
+				end
 			end
 
 			-- Update store state on mount to catch missed state updates between

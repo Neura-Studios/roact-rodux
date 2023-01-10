@@ -1,5 +1,5 @@
 {
-  "name": "Roact-Rodux Test Place",
+  "name": "RoactRodux",
   "tree": {
     "$className": "DataModel",
 
@@ -11,15 +11,16 @@
       },
 
       "Roact": {
-        "$path": "modules/roact/src"
+        "$path": "Packages/Roact.lua"
       },
-
       "Rodux": {
-        "$path": "modules/rodux/src"
+        "$path": "Packages/Rodux.lua"
       },
-
       "TestEZ": {
-        "$path": "modules/testez/src"
+        "$path": "Packages/TestEZ.lua"
+      },
+      "_Index": {
+        "$path": "Packages/_Index"
       }
     },
 

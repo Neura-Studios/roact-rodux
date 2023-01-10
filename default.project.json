@@ -1,23 +1,6 @@
 {
   "name": "RoactRodux",
   "tree": {
-    "$className": "Folder",
-    "Roact": {
-      "$path": "modules/roact/src",
-      ".luaurc": {
-          "$className": "StringValue",
-          "$path": "modules/.luaurc"
-      }
-    },
-    "Rodux": {
-      "$path": "modules/rodux/src",
-      ".luaurc": {
-          "$className": "StringValue",
-          "$path": "modules/.luaurc"
-      }
-    },
-    "RoactRodux": {
-      "$path": "src"
-    }
+    "$path": "src"
   }
 }

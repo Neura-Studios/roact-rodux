@@ -10,9 +10,11 @@
 # MkDocs build output
 /site/
 
-# Rotriever
-rotriever.lock
+# Wally
 Packages
+DevPackages
+wally.lock
 
 # Misc OS
 .DS_Store
+sourcemap.json
